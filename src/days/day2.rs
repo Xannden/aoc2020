@@ -1,36 +1,41 @@
 use std::fs::File;
 use std::io::Read;
 
-type Data = String;
+type Data = Vec<Line>;
 
+struct Line {
+    min: usize,
+    max: usize,
+    character: char,
+    pass: String,
+}
 
-
-fn parse(mut input: File) -> Data {
+fn parse(data: String) -> Data {
     println!("Day 2");
-    let mut data = String::new();
 
-    input.read_to_string(&mut data).unwrap();
+    let mut lines = Vec::new();
 
-    data
+    for line in data.lines() {
+        let mut split = line.split([' ', ':', '-'].as_ref());
+        lines.push(Line {
+            min: split.next().unwrap().parse().unwrap(),
+            max: split.next().unwrap().parse().unwrap(),
+            character: split.next().unwrap().parse().unwrap(),
+            pass: split.nth(1).unwrap().to_string(),
+        })
+    }
+
+    lines
 }
 
 fn part1(data: Data) -> Data {
-    let mut valid = 0;
+    fn is_valid(line: &Line) -> bool {
+        let matches = line.pass.matches(line.character).count();
 
-    for line in data.lines() {
-        let mut split = line.split([' ', '-', ':'].as_ref());
-        let low: usize = split.next().unwrap().parse().unwrap();
-        let high: usize = split.next().unwrap().parse().unwrap();
-        let char = split.next().unwrap().chars().next().unwrap();
-
-        let pass = split.nth(1).unwrap();
-
-        let count = pass.chars().filter(|c| c == &char).count();
-
-        if count <= high && count >= low {
-            valid += 1;
-        }
+        matches <= line.max && matches >= line.min
     }
+
+    let valid = data.iter().filter(|line| is_valid(line)).count();
 
     println!("Part 1 {}", valid);
 
@@ -38,32 +43,29 @@ fn part1(data: Data) -> Data {
 }
 
 fn part2(data: Data) {
-    let mut valid = 0;
+    fn is_valid(line: &Line) -> bool {
+        let mut chars = line.pass.chars();
 
-    for line in data.lines() {
-        let mut split = line.split(|c| c == '-' || c == ':' || c == ' ');
-        let mut low: usize = split.next().unwrap().parse().unwrap();
-        let mut high: usize = split.next().unwrap().parse().unwrap();
-        let char = split.next().unwrap().chars().next().unwrap() as u8;
+        let first = chars.nth(line.min - 1) == Some(line.character);
+        let second = chars.nth(line.max - line.min - 1) == Some(line.character);
 
-        low -= 1;
-        high -= 1;
-
-        let pass = split.nth(1).unwrap().as_bytes();
-
-        if ((pass[low] == char) && (pass[high] != char))
-            || ((pass[low] != char) && (pass[high] == char))
-        {
-            valid += 1;
-        }
+        first ^ second
     }
 
-    println!("Part 2 {}", valid);
+    println!(
+        "Part 2 {}",
+        data.iter().filter(|line| is_valid(line)).count()
+    );
 }
 
 pub fn run() {
-    let file = File::open("input/day2.txt").unwrap();
-    let mut data = parse(file);
+    let mut file = File::open("input/day2.txt").unwrap();
+
+    let mut data = String::new();
+
+    file.read_to_string(&mut data).unwrap();
+
+    let mut data = parse(data);
 
     data = part1(data);
     part2(data);
