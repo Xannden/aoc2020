@@ -70,7 +70,7 @@ impl Board {
 }
 
 fn parse(input: String) -> Data {
-    let width = input.find("\r\n").unwrap();
+    let width = input.find('\n').unwrap();
     let height = input.lines().count();
 
     let mut data = Vec::new();

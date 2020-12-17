@@ -41,7 +41,7 @@ impl Height {
 
 fn parse(input: String) -> Data {
     let mut passports = Vec::new();
-    for data in input.split("\r\n\r\n") {
+    for data in input.split("\n\n") {
         let mut passport = Passport::default();
         for fields in data.split([' ', '\n'].as_ref()) {
             let key_value: Vec<_> = fields.split(':').collect();
